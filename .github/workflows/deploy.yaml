@@ -1,7 +1,10 @@
 name: Reusable Mise Deploy Workflow
 
 on:
-  workflow_call: {}
+  workflow_call:
+    secrets:
+      GITHUB_TOKEN:
+        required: true
 
 permissions:
   contents: read
