@@ -1,15 +1,9 @@
 name: Reusable Mise Deploy Workflow
-
 on:
   workflow_call:
-    secrets:
-      GITHUB_TOKEN:
-        required: true
-
 permissions:
   contents: read
   packages: read
-
 jobs:
   deploy:
     runs-on: self-hosted
@@ -21,7 +15,6 @@ jobs:
     concurrency:
       group: ${{ github.ref }}
       cancel-in-progress: true
-
     steps:
       - uses: actions/checkout@v4
 
