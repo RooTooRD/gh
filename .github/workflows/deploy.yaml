@@ -6,7 +6,7 @@ permissions:
   packages: read
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -48,10 +48,23 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
           echo "@nuqayah:registry=https://npm.pkg.github.com" >> .npmrc
 
+      - name: Configure SSH for deploy host
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t ed25519,rsa "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          printf 'Host %s\n  User abdou\n  IdentityFile ~/.ssh/id_ed25519\n  StrictHostKeyChecking yes\n  ServerAliveInterval 30\n' "$DEPLOY_HOST" > ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
       - name: Deploy (mise task)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_OPTIONS: "--max_old_space_size=4096"
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           perl -i -pe 's/(python.uv_venv_auto =) true/$1 false/' mise.toml
           mise run deploy
